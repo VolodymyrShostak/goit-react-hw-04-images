@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -9,78 +9,67 @@ import { Searchbar } from './Searchbar/Searchbar';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 
-export class App extends React.Component {
-  state = {
-    pictures: [],
-    keyWord: '',
-    modal: '',
-    page: 1,
-    loader: false,
-    hideButton: true,
+export function App() {
+  const [pictures, setPictures] = useState([]);
+  const [keyWord, setKeyWord] = useState('');
+  const [modal, setModal] = useState('');
+  const [page, setPage] = useState(1);
+  const [loader, setLoader] = useState(false);
+  const [hideButton, setHideButton] = useState(true);
+
+  useEffect(() => {
+   
+if(keyWord) loadSearchingImg();
+
+   
+    // eslint-disable-next-line
+  }, [keyWord, page]);
+
+  const onSearchImage = keyWord => {
+   
+    setKeyWord(keyWord);
+    setPictures([]);
+    setPage(1);
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const { keyWord, page } = this.state;
-    if (prevState.keyWord !== keyWord || prevState.page !== page) {
-      return this.loadSearchingImg();
-    }
-  }
-
-  onSearchImage = keyWord => {
-    if (!keyWord || keyWord === this.state.keyWord) return;
-
-    this.setState({ pictures: [], keyWord: keyWord, page: 1 });
-  };
-
-  loadSearchingImg = async () => {
-    this.setState({ loader: true, hideButton: true });
-    const { keyWord, page } = this.state;
+  const loadSearchingImg = async () => {
+       setLoader(true);
+    setHideButton(true);
+   
     const data = await GeterPictures(keyWord, page);
     if (!data.hits.length) {
-      this.setState({ loader: false });
+      setLoader(false);
       return toast('Sorry, we did not find any pictures...');
     }
 
-    this.setState(prevState => ({
-      pictures: [...prevState.pictures, ...data.hits],
-      loader: false,
-    }));
+    setPictures([...pictures, ...data.hits]);
+    setLoader(false);
   };
 
-  onClickLoadMore = () => {
-    this.setState({ page: this.state.page + 1 });
+  const onClickLoadMore = () => {
+    setPage(page + 1);
   };
-  onModalOpen = url => {
-    this.setState({ modal: url });
-  };
-
-  onModalClose = () => {
-    this.setState({
-      modal: '',
-    });
+  const onModalOpen = url => {
+    setModal(url);
   };
 
-  render = () => {
-    return (
+  const onModalClose = () => {
+    setModal('');
+  };
+
+  return (
+    <>
+      <Searchbar onSubmit={onSearchImage} />
+      <ToastContainer autoClose={3000} />
       <>
-        <Searchbar onSubmit={this.onSearchImage} />
-        <ToastContainer autoClose={3000} />
-        <>
-          {this.state.loader && <Loader />}
-          <ImageGallery
-            pictures={this.state.pictures}
-            onClick={this.onModalOpen}
-          />
-          {this.state.pictures.length > 0 && this.state.hideButton && (
-            
-            <Button onClick={this.onClickLoadMore} />
-          )}
+        {loader && <Loader />}
+        <ImageGallery pictures={pictures} onClick={onModalOpen} />
+        {pictures.length > 0 && hideButton && (
+          <Button onClick={onClickLoadMore} />
+        )}
 
-          {this.state.modal && (
-            <Modal closeModal={this.onModalClose} url={this.state.modal} />
-          )}
-        </>
+        {modal && <Modal closeModal={onModalClose} url={modal} />}
       </>
-    );
-  };
+    </>
+  );
 }

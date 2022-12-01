@@ -1,42 +1,40 @@
-import React from 'react';
+import {useState} from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import { WrapperSearchbar, SearchForm, SearchFormInput,SearchFormButton,SearchFormButtonLabel } from './styled.js';
 
-export class Searchbar extends React.Component {
-  state = {
-    search: '',
-  };
+export  function Searchbar({ onSubmit }) {
+  const [search, setSearch] = useState('') 
 
-onChange = e => {
-    const { name, value } = e.currentTarget;
-    this.setState({ [name]: value.trim() });
+const onChange = e => {
+    const { value } = e.currentTarget;
+    setSearch(value.trim());
   };
 
   
-  onSubmit = e => {
+  const onHandleSubmit = e => {
     e.preventDefault();
-    if (this.state.search.trim() === '') {
+    if (search.trim() === '') {
       toast.warning('Please, enter a keyword...');
       return;
     }
-    const keyWord = this.state.search;
-    this.props.onSubmit(keyWord);
-   this.setState({ search: '' });
+  
+    onSubmit(search);
+   setSearch('');
   };
 
-  render() {
+  
     return (
       <WrapperSearchbar>
-        <SearchForm onSubmit={this.onSubmit}>
+        <SearchForm onSubmit={onHandleSubmit}>
           <SearchFormButton type="submit">
             <SearchFormButtonLabel>Search</SearchFormButtonLabel>
           </SearchFormButton>
 
           <SearchFormInput
-            value={this.state.search}
+            value={search}
             name="search"
-            onChange={this.onChange}
+            onChange={onChange}
             type="text"
             autocomplete="off"
             autoFocus
@@ -46,7 +44,7 @@ onChange = e => {
       </WrapperSearchbar>
     );
   }
-}
+
 
 Searchbar.propTypes = {
   onSubmit: PropTypes.func.isRequired,
